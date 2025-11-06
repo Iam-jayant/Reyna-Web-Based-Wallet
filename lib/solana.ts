@@ -14,9 +14,13 @@ export function deriveSolanaWallet(mnemonic: string, account = 0, change = 0): D
   const pair = nacl.sign.keyPair.fromSeed(key);
   const keypair = Keypair.fromSecretKey(pair.secretKey);
 
+  // Convert secretKey (Uint8Array) to base64 without using spread (avoids downlevelIteration issues)
+  const secretBin = Array.from(keypair.secretKey).map((b) => String.fromCharCode(b)).join('');
+  const secretBase64 = typeof window !== 'undefined' ? btoa(secretBin) : Buffer.from(secretBin, 'binary').toString('base64');
+
   return {
     publicKey: keypair.publicKey.toBase58(),
-    privateKey: btoa(String.fromCharCode(...keypair.secretKey)),
+    privateKey: secretBase64,
     path,
     coinType: COIN_TYPE.SOLANA
   };
